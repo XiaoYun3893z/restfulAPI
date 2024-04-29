@@ -1,0 +1,34 @@
+{
+  "users": {
+    "33d71a71-dd71-4712-9bfc-ff251eba807b": {
+      "id": "33d71a71-dd71-4712-9bfc-ff251eba807b",
+      "account": "ben",
+      "password": "a12345",
+      "name": "Ben Chen",
+      "head": "https://randomuser.me/api/portraits/men/44.jpg"
+    }
+  },
+  "products": [
+    {
+      "id": "03d0fc0d-ac9c-4c54-9c78-6717fe019383",
+      "title": "小黃瓜",
+      "price": 30,
+      "stock": 1000,
+      "createTime": 1714358525193
+    },
+    {
+      "id": "f9cdda6a-d966-418e-bfd5-d1dbfd32eb24",
+      "title": "櫛瓜",
+      "price": 45,
+      "stock": 100,
+      "createTime": 1714358396814
+    },
+    {
+      "id": "b3a2f228-89e6-44c5-b187-c05221ab59ec",
+      "title": "南瓜",
+      "price": 150,
+      "stock": 777,
+      "createTime": 1714358872475
+    }
+  ]
+}
