@@ -129,9 +129,18 @@ app.get("/api/users/status", checkToken, (req, res) => {
   }
 });
 
-app.get("/api/users/search", (req, res) => {
-  const id = req.query.id
-  res.status(200).json({message: `使用 ID 作為搜尋條件來搜尋使用者 ${id}`});
+app.get("/api/users/search", async (req, res) => {
+  let user, error;
+  user = await userSearch(req).then(result => result).catch(err => {
+    error = err;
+    return undefined;
+  });
+  if(error){
+    res.status(404).json({status: "error", message: error.message?error.message:"無效的搜尋條件"});
+    return false;
+  }
+  const {password, ...others} = user;
+  res.status(200).json({ status: "success", message: "搜尋成功", user: others });
 });
 
 app.get("/api/users/:id", async (req, res) => {
@@ -161,9 +170,25 @@ app.put("/api/users/:id", checkToken, upload.none(), async (req, res) => {
   res.status(200).json({status: "success", message: "使用者修改成功"});
 });
 
-app.delete("/api/users/:id", (req, res) => {
-  const id = req.params.id;
-  res.status(200).json({message: `刪除特定 ID 的使用者 ${id}`});
+app.delete("/api/users/:id", checkToken, async (req, res) => {
+  let user, error;
+  user = await userDelete(req).then(result => result).catch(err => {
+    error = err;
+    return undefined;
+  });
+  if(error){
+    res.status(404).json({status: "error", message: error.message?error.message:"使用者不存在"});
+    return false;
+  }
+  const token = jwt.sign({
+    account: undefined,
+    name: undefined,
+    mail: undefined,
+    head: undefined
+  }, secretKey, {
+    expiresIn: "-10s"
+  });
+  res.status(200).json({ status: "success", message: "使用者刪除成功", token });
 });
 
 app.listen(3000, () => {
@@ -172,20 +197,34 @@ app.listen(3000, () => {
 
 function userSearch(req){
   return new Promise((resolve, reject) => {
-
+    const id = req.query.id;
+    let result = db.data.users.find(u => u.id === id);
+    if(result){
+      resolve(result);
+    }else{
+      reject(new Error("找不到相對應的資料"))
+    }
   });
 }
 
 function userDelete(req){
-  return new Promise((resolve, reject) => {
-
+  return new Promise(async (resolve, reject) => {
+    const id = req.params.id;
+    const { id: idToken } = req.decoded;
+    if(id !== idToken){
+      return reject(new Error("沒有權限"));
+    }
+    let user = db.data.users.find(u => u.id === id);
+    db.data.users = db.data.users.filter(u => u.id !== id);
+    await db.write();
+    resolve(user);
   });
 }
 
 function userUpdate(req){
   return new Promise(async (resolve, reject) => {
     const id = req.params.id;
-    const { password, name, head} = req.body;
+    const { password, name, head } = req.body;
     const { id: idToken } = req.decoded;
     if(id !== idToken){
       return reject(new Error("沒有權限"));
